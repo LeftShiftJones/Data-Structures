@@ -18,6 +18,7 @@ public class HollywoodGraph {
     private Graph actorGraph;
     private CCBFS components;
     private String[] keys;
+    private int[] numComponentActors;
     private RedBlackBST<String, Integer> hollywoodTree;
     private int numActors;
 
@@ -40,10 +41,6 @@ public class HollywoodGraph {
             this.connectedActors = 1;
             this.averageDistance = 0.0;
             runBFS();
-        }
-
-        public int compareTo(Actor that) {
-            return Double.compare(this.averageDistance, that.averageDistance);
         }
 
         private void runBFS() {
@@ -186,9 +183,15 @@ public class HollywoodGraph {
 
     public HollywoodGraph(String filename) {
         hollywoodTree = new RedBlackBST<>();
+        numActors = 0;
         fillGraph(filename);
         if (actorGraph == null) throw new IllegalArgumentException("Graph was not properly initialized");
         components = new CCBFS(actorGraph);
+        for(int i = 0; i < numActors; i++) {
+            int id = components.id(i);
+            numComponentActors[id]++;
+
+        }
     }
 
     public Actor getActorDetails(String name) {
@@ -228,6 +231,7 @@ public class HollywoodGraph {
 
         keys = new String[hollywoodTree.size()];
         for (String name : hollywoodTree.keys()) keys[hollywoodTree.get(name)] = name;
+        numComponentActors = new int[numActors];
     }
 
     /**
@@ -268,7 +272,7 @@ public class HollywoodGraph {
     }
 
     public int connectedActorsCount(String name) {
-        return getActorDetails(name).connectedActors();
+        return numComponentActors[components.id(hollywoodTree.get(name))];
     }
 
     public double hollywoodNumber(String name) {
@@ -278,14 +282,15 @@ public class HollywoodGraph {
     static public void main(String[] args) {
         /* put code here to answer readme questions */
         HollywoodGraph h = new HollywoodGraph("data/movies.txt");
-        double d = Double.MAX_VALUE;
-        for(int i = 0; i < h.numActors; i++) {
-            Actor a = h.getActorDetails(h.keys[i]);
-            if(a.distanceAverage() < d) {
-                d = a.distanceAverage();
-                StdOut.println(a.name() + " : " + a.distanceAverage());
-            }
-        }
+
+        Stopwatch s = new Stopwatch();
+        StdOut.println(h.getActorDetails("Bacon, Kevin").connectedActors());
+        double d = s.elapsedTime();
+        StdOut.println(d);
+
+        s = new Stopwatch();
+        StdOut.println(h.connectedActorsCount("Bacon, Kevin"));
+        d = s.elapsedTime();
+        StdOut.println(d);
     }
 }
-
